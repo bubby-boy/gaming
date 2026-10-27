@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GameVerse — Game Launcher</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0e15;
+  --panel: #151b29;
+  --border: #2a354b;
+  --purple: #7957ff;
+  --muted: #aab5ca;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top left,#292052,var(--bg) 48%);
+  color: #f4f6ff;
+  font: 15px system-ui, sans-serif;
+}
+button,input { font: inherit; }
+button { cursor: pointer; }
+.app { max-width: 1400px; margin: auto; padding: 24px; }
+header {
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 28px;
+}
+.logo { font-size: 25px; font-weight: 900; }
+.search { flex: 1; min-width: 220px; }
+.search input {
+  width: 100%; padding: 13px 15px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: #111725; color: white;
+}
+.hero {
+  padding: 32px; border-radius: 22px;
+  background: linear-gradient(115deg,#292052,#183c47);
+  border: 1px solid #51459b; margin-bottom: 28px;
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 20px;
+}
+.hero h1 { font-size: clamp(35px,5vw,65px); line-height: 1.05; margin: 10px 0; }
+.hero p { color: #c4cee0; max-width: 620px; }
+.hero-art { font-size: 100px; }
+.btn {
+  padding: 10px 14px; border-radius: 10px;
+  background: #202a3e; border: 1px solid var(--border);
+  color: white; font-weight: 700;
+}
+.primary,.play { background: var(--purple); border: 0; color: white; }
+.filters { display: flex; gap: 9px; flex-wrap: wrap; margin: 18px 0; }
+.chip { border-radius: 999px; padding: 9px 14px; }
+.chip.active { background: #382a70; border-color: #8c75ff; }
+h2 { margin-bottom: 5px; }
+.muted { color: var(--muted); }
+.grid {
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden; transition: .18s;
+}
+.card:hover { transform: translateY(-3px); border-color: #8069ff; }
+.cover {
+  height: 145px; display: grid; place-items: center;
+  font-size: 68px; position: relative;
+}
+.minecraft { background: linear-gradient(135deg,#355c3a,#86ad61); }
+.voxel { background: linear-gradient(135deg,#13566d,#38b8c8); }
+.arcade { background: linear-gradient(135deg,#145348,#37b995); }
+.action { background: linear-gradient(135deg,#7d294d,#ed7958); }
+.puzzle { background: linear-gradient(135deg,#43317d,#a88aff); }
+.racing { background: linear-gradient(135deg,#784b1c,#eebc50); }
+.tag {
+  position: absolute; top: 10px; left: 10px;
+  font-size: 10px; padding: 5px 7px;
+  background: #111b; border-radius: 6px;
+}
+.card-body { padding: 14px; }
+.card h3 { margin: 0 0 6px; }
+.card p { color: var(--muted); font-size: 13px; min-height: 58px; }
+.card-foot { display: flex; justify-content: space-between; gap: 8px; }
+.play,.favorite { border-radius: 9px; padding: 9px 12px; }
+.favorite { background: transparent; border: 1px solid var(--border); color: white; }
+.favorite.saved { color: #ffd36a; }
+.notice {
+  margin-top: 25px; padding: 14px; border-radius: 12px;
+  background: #302817; border: 1px solid #6b5832; color: #f8dfa0;
+}
+footer { text-align: center; color: var(--muted); padding: 28px 0; font-size: 13px; }
+@media(max-width:1000px) { .grid { grid-template-columns: repeat(3,1fr); } }
+@media(max-width:700px) {
+  .app { padding: 15px; }
+  .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .hero-art { display: none; }
+}
+@media(max-width:440px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">🎮 GameVerse</div>
+    <div class="search">
+      <input id="search" placeholder="Search games..." aria-label="Search games">
+    </div>
+    <button class="btn" id="favoritesToggle">☆ Favorites</button>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="muted">YOUR NEXT WORLD AWAITS</div>
+      <h1>Play something<br>awesome.</h1>
+      <p>A game launcher for block-building worlds, browser adventures,
+      arcade favorites and indie games.</p>
+      <button class="btn primary" id="explore">Explore games ↓</button>
+    </div>
+    <div class="hero-art">🧊🌲</div>
+  </section>
+
+  <section id="library">
+    <h2>Game library</h2>
+    <div class="muted">Choose a game to visit its website.</div>
+    <nav class="filters">
+      <button class="btn chip active" data-category="All">All games</button>
+      <button class="btn chip" data-category="Sandbox">Sandbox & building</button>
+      <button class="btn chip" data-category="Arcade">Arcade</button>
+      <button class="btn chip" data-category="Indie">Indie</button>
+    </nav>
+    <div id="grid" class="grid"></div>
+    <p id="empty" class="muted" hidden>No games found. Try another search.</p>
+  </section>
+
+  <div class="notice">
+    <strong>Note:</strong> This is a launcher for external games, not a game host.
+    Many game websites prevent embedding, so games open in a new tab.
+  </div>
+  <footer>GameVerse · External games belong to their respective creators.</footer>
+</div>
+
+<script>
+const games = {{ games|tojson }};
+const grid = document.getElementById("grid");
+const search = document.getElementById("search");
+const empty = document.getElementById("empty");
+let category = "All";
+let favoritesOnly = false;
+let favorites = new Set();
+
+try {
+  favorites = new Set(JSON.parse(localStorage.getItem("gameverse-favorites") || "[]"));
+} catch (e) {}
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+}
+
+function render() {
+  const q = search.value.trim().toLowerCase();
+
+  const visible = games.filter(g => {
+    const text = (g.name + " " + g.category + " " + g.description).toLowerCase();
+    return (!q || text.includes(q))
+      && (category === "All" || g.category === category)
+      && (!favoritesOnly || favorites.has(g.id));
+  });
+
+  grid.innerHTML = visible.map(g => `
+    <article class="card">
+      <div class="cover ${esc(g.style)}">
+        <span class="tag">${esc(g.category.toUpperCase())}</span>
+        <span>${esc(g.emoji)}</span>
+      </div>
+      <div class="card-body">
+        <h3>${esc(g.name)}</h3>
+        <p>${esc(g.description)}</p>
+        <div class="card-foot">
+          <button class="play" data-play="${esc(g.id)}">▶ Play</button>
+          <button class="favorite ${favorites.has(g.id) ? "saved" : ""}"
+            data-fav="${esc(g.id)}">
+            ${favorites.has(g.id) ? "★ Saved" : "☆ Save"}
+          </button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  empty.hidden = visible.length > 0;
+  grid.hidden = visible.length === 0;
+
+  const favButton = document.getElementById("favoritesToggle");
+  favButton.textContent = favoritesOnly ? "★ All games" : "☆ Favorites";
+}
+
+grid.addEventListener("click", event => {
+  const play = event.target.closest("[data-play]");
+  const fav = event.target.closest("[data-fav]");
+
+  if (play) {
+    const game = games.find(g => g.id === play.dataset.play);
+    if (game) window.open(game.url, "_blank", "noopener,noreferrer");
+  }
+
+  if (fav) {
+    const id = fav.dataset.fav;
+    favorites.has(id) ? favorites.delete(id) : favorites.add(id);
+    localStorage.setItem("gameverse-favorites", JSON.stringify([...favorites]));
+    render();
+  }
+});
+
+search.addEventListener("input", render);
+
+document.querySelectorAll("[data-category]").forEach(button => {
+  button.addEventListener("click", () => {
+    category = button.dataset.category;
+    document.querySelectorAll("[data-category]").forEach(b =>
+      b.classList.toggle("active", b === button)
+    );
+    render();
+  });
+});
+
+document.getElementById("favoritesToggle").addEventListener("click", () => {
+  favoritesOnly = !favoritesOnly;
+  render();
+});
+
+document.getElementById("explore").addEventListener("click", () => {
+  document.getElementById("library").scrollIntoView({behavior:"smooth"});
+});
+
+render();
+</script>
+</body>
+</html>
